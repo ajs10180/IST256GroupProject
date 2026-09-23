@@ -20,3 +20,5 @@ Both pages will use HTML, CSS, and Bootstrap for a responsive layout.
 | Phone number | No |
 
 JavaScript will validate required fields before submission. Member records will be represented in JSON format and displayed dynamically in a table or cards.
+
+GitHub Desktop will be the easiest way to edit this repository.
