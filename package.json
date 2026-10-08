@@ -1,0 +1,9 @@
+{
+  "name": "ist256-group-project",
+  "version": "1.0.0",
+  "description": "IST256 Community Blog member management pages",
+  "private": true,
+  "scripts": {
+    "dev": "node dev.js"
+  }
+}

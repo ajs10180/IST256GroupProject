@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com",
+    "phone": "814-555-0123",
+    "age": 24,
+    "address": "123 College Ave, State College, PA"
+  }
+]
