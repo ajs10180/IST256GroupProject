@@ -12,8 +12,8 @@ function escapeHtml(text) {
 }
 
 // rebuild the table and the json preview from stored data
-function render() {
-  const members = loadMembers();
+async function render() {
+  const members = await loadMembers();
   tableBody.innerHTML = "";
 
   members.forEach(function (m) {
@@ -36,8 +36,8 @@ function render() {
 }
 
 // fill the edit form with the chosen member and show it
-function openEdit(id) {
-  const member = loadMembers().find(m => m.id === id);
+async function openEdit(id) {
+  const member = (await loadMembers()).find(m => m.id === id);
   document.getElementById("editId").value = member.id;
   document.getElementById("editName").value = member.name;
   document.getElementById("editEmail").value = member.email;
@@ -48,15 +48,15 @@ function openEdit(id) {
   editModal.show();
 }
 
-function deleteMember(id) {
+async function deleteMember(id) {
   if (confirm("Delete this member?")) {
-    saveMembers(loadMembers().filter(m => m.id !== id));
-    render();
+    await saveMembers((await loadMembers()).filter(m => m.id !== id));
+    await render();
   }
 }
 
 // validate the edit form, then save the updated member
-editForm.addEventListener("submit", function (event) {
+editForm.addEventListener("submit", async function (event) {
   event.preventDefault();
 
   const name = document.getElementById("editName");
@@ -81,7 +81,7 @@ editForm.addEventListener("submit", function (event) {
   if (!allValid) return;
 
   const id = Number(document.getElementById("editId").value);
-  const members = loadMembers();
+  const members = await loadMembers();
   const member = members.find(m => m.id === id);
   member.name = name.value.trim();
   member.email = email.value.trim().toLowerCase();
@@ -89,18 +89,9 @@ editForm.addEventListener("submit", function (event) {
   member.age = Number(age.value);
   member.address = address.value.trim();
 
-  saveMembers(members);
+  await saveMembers(members);
   editModal.hide();
-  render();
-});
-
-// let the user save the stored data as the members.json file
-document.getElementById("downloadBtn").addEventListener("click", function () {
-  const blob = new Blob([JSON.stringify(loadMembers(), null, 2)], { type: "application/json" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "members.json";
-  link.click();
+  await render();
 });
 
 render();

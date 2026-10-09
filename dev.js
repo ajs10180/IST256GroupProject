@@ -21,6 +21,36 @@ function log(req, code) {
 
 const server = http.createServer(function (req, res) {
   const url = decodeURIComponent(req.url.split("?")[0]);
+  // api for the members: GET reads data/members.json, PUT overwrites it
+  if (url === "/api/members") {
+    const membersFile = path.join(ROOT, "data", "members.json");
+    if (req.method === "GET") {
+      fs.readFile(membersFile, "utf8", function (err, data) {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(err ? "[]" : data);
+        log(req, 200);
+      });
+      return;
+    }
+    if (req.method === "PUT") {
+      let body = "";
+      req.on("data", chunk => body += chunk);
+      req.on("end", function () {
+        try {
+          const members = JSON.parse(body);
+          if (!Array.isArray(members)) throw new Error("not a list");
+          fs.writeFileSync(membersFile, JSON.stringify(members, null, 2) + "\n");
+          res.writeHead(200).end("saved");
+          log(req, 200);
+        } catch (e) {
+          res.writeHead(400).end("Bad data");
+          log(req, 400);
+        }
+      });
+      return;
+    }
+  }
+
   const filePath = path.join(ROOT, url === "/" ? "index.html" : url);
 
   // only serve files inside the project folder, never node_modules

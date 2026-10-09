@@ -28,7 +28,7 @@ function validateForm() {
   return results.every(Boolean);
 }
 
-form.addEventListener("submit", function (event) {
+form.addEventListener("submit", async function (event) {
   event.preventDefault();
   message.classList.add("d-none");
 
@@ -36,7 +36,7 @@ form.addEventListener("submit", function (event) {
     return;
   }
 
-  const members = loadMembers();
+  const members = await loadMembers();
   const emailInput = document.getElementById("email");
   const email = emailInput.value.trim().toLowerCase();
 
@@ -56,7 +56,7 @@ form.addEventListener("submit", function (event) {
     age: Number(document.getElementById("age").value),
     address: document.getElementById("address").value.trim()
   });
-  saveMembers(members);
+  await saveMembers(members);
 
   form.reset();
   form.querySelectorAll(".is-valid").forEach(el => el.classList.remove("is-valid"));

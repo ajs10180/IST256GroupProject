@@ -1,15 +1,19 @@
-// members are stored as a json string in the browser's localstorage
-const STORAGE_KEY = "blogMembers";
-
-// load the member list (an array of objects) from json
-function loadMembers() {
-  const json = localStorage.getItem(STORAGE_KEY);
-  return json ? JSON.parse(json) : [];
+// members are saved in data/members.json through the dev server api (see dev.js)
+async function loadMembers() {
+  const response = await fetch("/api/members");
+  return response.json();
 }
 
-// save the member list back as a json string
-function saveMembers(members) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(members, null, 2));
+// send the whole member list to the server, which writes it to members.json
+async function saveMembers(members) {
+  const response = await fetch("/api/members", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(members)
+  });
+  if (!response.ok) {
+    alert("Could not save to members.json. Is the server running (npm run dev)?");
+  }
 }
 
 // shared validation rules used by the sign up and edit forms
