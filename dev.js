@@ -39,6 +39,7 @@ const server = http.createServer(function (req, res) {
         try {
           const members = JSON.parse(body);
           if (!Array.isArray(members)) throw new Error("not a list");
+          fs.mkdirSync(path.dirname(membersFile), { recursive: true }); // data folder may not exist on a fresh clone
           fs.writeFileSync(membersFile, JSON.stringify(members, null, 2) + "\n");
           res.writeHead(200).end("saved");
           log(req, 200);
