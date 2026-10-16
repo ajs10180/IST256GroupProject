@@ -26,10 +26,10 @@ function savePosts() {
   });
 }
 
-// show a green message for a few seconds
+// show a green message for 8 seconds
 function showMessage(text) {
   $("#message").text(text).removeClass("d-none");
-  setTimeout(() => $("#message").addClass("d-none"), 3000);
+  setTimeout(() => $("#message").addClass("d-none"), 8000);
 }
 
 // rebuild the table and the json preview from the posts list
