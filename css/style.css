@@ -1,11 +1,15 @@
 /* import the Fredoka font from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
 
-/* off-white bg color to help with contrast */
+/* global reset and base styling */
 body {
+  margin: 0;
   background-color: #f8f9fa;
   font-family: "Fredoka", sans-serif;
   font-weight: 300;
+  line-height: 1.6;
+  color: #333333;
+  
   /* column layout so the footer stays at the bottom of short pages */
   display: flex;
   flex-direction: column;
@@ -19,19 +23,33 @@ main {
 
 /* homepage hero banner */
 .hero {
-  background-color: #2c6e49;
+  background-color: #12607b;
   color: white;
-  padding: 80px 0;
+  padding: 80px 20px;
+  text-align: center;
 }
 
-/* the cards get a small hover effect */
+/* title sytling */
+.hero h1 {
+  font-weight: 550;
+  margin: 0;
+}
+
+/* the cards get a smooth hover effect and lift */
+.post-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 .post-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
+/* footer styling */
 footer {
   background-color: #212529;
   color: #adb5bd;
-  padding: 20px 0;
+  padding: 24px 0;
   margin-top: 40px;
+  text-align: center;
 }
