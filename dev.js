@@ -22,7 +22,7 @@ function log(req, code) {
 const server = http.createServer(function (req, res) {
   const url = decodeURIComponent(req.url.split("?")[0]);
   // api for members and posts: GET reads data/<name>.json, PUT overwrites it
-  const api = url.match(/^\/api\/(members|posts)$/);
+  const api = url.match(/^\/api\/(members|posts|products)$/);
   if (api) {
     const membersFile = path.join(ROOT, "data", api[1] + ".json");
     if (req.method === "GET") {

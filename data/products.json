@@ -1,0 +1,16 @@
+[
+  { "id": "PROD01", "name": "Folding Lawn Chair", "price": 24.99 },
+  { "id": "PROD02", "name": "Gas-Powered Lawnmower", "price": 189.50 },
+  { "id": "PROD03", "name": "Red Clay Bricks (Pallet)", "price": 75.00 },
+  { "id": "PROD04", "name": "Heavy-Duty Wheelbarrow", "price": 60.00 },
+  { "id": "PROD05", "name": "Aluminum Extension Ladder (16ft)", "price": 119.99 },
+  { "id": "PROD06", "name": "Cordless Electric Leaf Blower", "price": 89.00 },
+  { "id": "PROD07", "name": "Bag of Portland Cement (80lbs)", "price": 12.50 },
+  { "id": "PROD08", "name": "Steel Garden Rake", "price": 19.99 },
+  { "id": "PROD09", "name": "Gasoline Pressure Washer", "price": 249.00 },
+  { "id": "PROD10", "name": "Coiled Garden Hose (50ft)", "price": 29.99 },
+  { "id": "PROD11", "name": "Wooden Picnic Table", "price": 150.00 },
+  { "id": "PROD12", "name": "Sturdy Post Hole Digger", "price": 34.50 },
+  { "id": "PROD13", "name": "Solar Outdoor Pathway Lights (6-pack)", "price": 39.99 },
+  { "id": "PROD14", "name": "Bag of Premium Mulch (2 cu ft)", "price": 5.99 }
+]
