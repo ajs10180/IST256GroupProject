@@ -77,6 +77,43 @@ $("#clearBtn").on("click", function () {
   render();
 });
 
+// jquery search: find products in the json by any word and list them with add buttons
+function searchProducts() {
+  const text = $("#search").val().trim().toLowerCase();
+  const list = $("#searchResults").empty();
+  $("#noResults").addClass("d-none");
+  if (text === "") return;
+
+  const matches = $.grep(products, p => Object.values(p).join(" ").toLowerCase().includes(text));
+
+  matches.forEach(function (p) {
+    const item = $("<li>").addClass("list-group-item d-flex justify-content-between align-items-center");
+    item.append($("<span>").text(p.description + " (" + p.category + ") - $" + p.price.toFixed(2)));
+    item.append($("<button>").addClass("btn btn-sm btn-success add-btn").attr("data-id", p.id).text("Add to Cart"));
+    list.append(item);
+  });
+
+  $("#noResults").toggleClass("d-none", matches.length > 0);
+}
+
+$("#search").on("input", searchProducts);
+
+// add button puts the product in the cart, or raises the quantity if it is already there
+$("#searchResults").on("click", ".add-btn", function () {
+  const id = $(this).attr("data-id");
+  const cart = loadCart();
+  const existing = cart.find(i => i.id === id);
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ id: id, quantity: 1 });
+  }
+
+  saveCart(cart);
+  render();
+});
+
 // load the products first so the cart can show descriptions and prices
 $.getJSON("/api/products", function (data) {
   products = data;

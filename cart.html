@@ -33,6 +33,14 @@
   <main class="container mt-5">
     <h1 class="mb-4">Shopping Cart</h1>
 
+    <!-- jquery search of the products json, results can be added to the cart -->
+    <div class="card card-body mb-4">
+      <h2 class="h5">Find Products</h2>
+      <input type="text" class="form-control mb-2" id="search" placeholder="Search products by any word...">
+      <ul class="list-group" id="searchResults"></ul>
+      <p id="noResults" class="text-muted mt-2 mb-0 d-none">No products match your search.</p>
+    </div>
+
     <!-- table body is filled in by cart.js -->
     <div class="table-responsive">
       <table class="table table-striped bg-white">
