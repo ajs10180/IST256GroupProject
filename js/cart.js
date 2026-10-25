@@ -1,3 +1,6 @@
+// address of the restful api that will be built later
+const API_URL = "/api/orders";
+
 // the list of products loaded from data/products.json
 let products = [];
 
@@ -50,6 +53,7 @@ function render() {
   $("#total").text("$" + total.toFixed(2));
   $("#emptyMsg").toggleClass("d-none", cart.length > 0);
   $("#clearBtn").prop("disabled", cart.length === 0);
+  $("#checkoutBtn").prop("disabled", cart.length === 0);
   $("#jsonView").text(JSON.stringify(cart, null, 2));
 }
 
@@ -112,6 +116,34 @@ $("#searchResults").on("click", ".add-btn", function () {
 
   saveCart(cart);
   render();
+});
+
+// show a colored message about the api result
+function showStatus(type, text) {
+  $("#status").removeClass("d-none alert-success alert-warning").addClass("alert-" + type).text(text);
+}
+
+// checkout button: build the order json and send it to the api with ajax
+$("#checkoutBtn").on("click", function () {
+  const items = loadCart().map(function (item) {
+    const product = findProduct(item.id);
+    return { id: product.id, description: product.description, category: product.category, unit: product.unit, price: product.price, quantity: item.quantity };
+  });
+  const order = { items: items, total: items.reduce((sum, i) => sum + i.price * i.quantity, 0) };
+
+  $.ajax({
+    url: API_URL,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(order)
+  }).done(function () {
+    saveCart([]);
+    render();
+    showStatus("success", "Order sent to the API.");
+  }).fail(function () {
+    // the api is not built yet so this is expected for now
+    showStatus("warning", "Could not reach the API at " + API_URL + ". Your cart was kept.");
+  });
 });
 
 // load the products first so the cart can show descriptions and prices

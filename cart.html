@@ -54,10 +54,16 @@
     </div>
     <p id="emptyMsg" class="text-muted d-none">Your cart is empty. Visit the <a href="products.html">Products</a> page to add items.</p>
 
-    <!-- cart total and clear button -->
+    <!-- shows the result of sending the cart to the api -->
+    <div id="status" class="alert d-none"></div>
+
+    <!-- cart total, clear button and checkout button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <button type="button" class="btn btn-outline-danger" id="clearBtn">Clear Cart</button>
-      <h2 class="h4 mb-0">Total: <span id="total">$0.00</span></h2>
+      <div class="text-end">
+        <h2 class="h4">Total: <span id="total">$0.00</span></h2>
+        <button type="button" class="btn btn-success" id="checkoutBtn">Send Order to API</button>
+      </div>
     </div>
 
     <h2 class="mt-4">Cart JSON</h2>
