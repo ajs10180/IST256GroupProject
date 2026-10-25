@@ -1,16 +1,128 @@
 [
-  { "id": "PROD01", "name": "Folding Lawn Chair", "price": 24.99 },
-  { "id": "PROD02", "name": "Gas-Powered Lawnmower", "price": 189.50 },
-  { "id": "PROD03", "name": "Red Clay Bricks (Pallet)", "price": 75.00 },
-  { "id": "PROD04", "name": "Heavy-Duty Wheelbarrow", "price": 60.00 },
-  { "id": "PROD05", "name": "Aluminum Extension Ladder (16ft)", "price": 119.99 },
-  { "id": "PROD06", "name": "Cordless Electric Leaf Blower", "price": 89.00 },
-  { "id": "PROD07", "name": "Bag of Portland Cement (80lbs)", "price": 12.50 },
-  { "id": "PROD08", "name": "Steel Garden Rake", "price": 19.99 },
-  { "id": "PROD09", "name": "Gasoline Pressure Washer", "price": 249.00 },
-  { "id": "PROD10", "name": "Coiled Garden Hose (50ft)", "price": 29.99 },
-  { "id": "PROD11", "name": "Wooden Picnic Table", "price": 150.00 },
-  { "id": "PROD12", "name": "Sturdy Post Hole Digger", "price": 34.50 },
-  { "id": "PROD13", "name": "Solar Outdoor Pathway Lights (6-pack)", "price": 39.99 },
-  { "id": "PROD14", "name": "Bag of Premium Mulch (2 cu ft)", "price": 5.99 }
+  {
+    "id": "PROD01",
+    "description": "Folding Lawn Chair",
+    "category": "Outdoor Living",
+    "unit": "Each",
+    "price": 24.99,
+    "weight": 8,
+    "color": "Green"
+  },
+  {
+    "id": "PROD02",
+    "description": "Gas-Powered Lawnmower",
+    "category": "Lawn & Garden",
+    "unit": "Each",
+    "price": 189.5,
+    "weight": 62,
+    "color": "Red"
+  },
+  {
+    "id": "PROD03",
+    "description": "Red Clay Bricks (Pallet)",
+    "category": "Building Materials",
+    "unit": "Pallet",
+    "price": 75,
+    "weight": 2000,
+    "color": "Red"
+  },
+  {
+    "id": "PROD04",
+    "description": "Heavy-Duty Wheelbarrow",
+    "category": "Tools",
+    "unit": "Each",
+    "price": 60,
+    "weight": 18,
+    "color": "Black"
+  },
+  {
+    "id": "PROD05",
+    "description": "Aluminum Extension Ladder (16ft)",
+    "category": "Tools",
+    "unit": "Each",
+    "price": 119.99,
+    "weight": 24,
+    "color": "Silver"
+  },
+  {
+    "id": "PROD06",
+    "description": "Cordless Electric Leaf Blower",
+    "category": "Lawn & Garden",
+    "unit": "Each",
+    "price": 89,
+    "weight": 6,
+    "color": "Black"
+  },
+  {
+    "id": "PROD07",
+    "description": "Bag of Portland Cement (80lbs)",
+    "category": "Building Materials",
+    "unit": "Bag",
+    "price": 12.5,
+    "weight": 80,
+    "color": ""
+  },
+  {
+    "id": "PROD08",
+    "description": "Steel Garden Rake",
+    "category": "Lawn & Garden",
+    "unit": "Each",
+    "price": 19.99,
+    "weight": 4,
+    "color": ""
+  },
+  {
+    "id": "PROD09",
+    "description": "Gasoline Pressure Washer",
+    "category": "Tools",
+    "unit": "Each",
+    "price": 249,
+    "weight": 45,
+    "color": "Yellow"
+  },
+  {
+    "id": "PROD10",
+    "description": "Coiled Garden Hose (50ft)",
+    "category": "Lawn & Garden",
+    "unit": "Each",
+    "price": 29.99,
+    "weight": 9,
+    "color": "Green"
+  },
+  {
+    "id": "PROD11",
+    "description": "Wooden Picnic Table",
+    "category": "Outdoor Living",
+    "unit": "Each",
+    "price": 150,
+    "weight": 95,
+    "color": "Brown"
+  },
+  {
+    "id": "PROD12",
+    "description": "Sturdy Post Hole Digger",
+    "category": "Tools",
+    "unit": "Each",
+    "price": 34.5,
+    "weight": 11,
+    "color": ""
+  },
+  {
+    "id": "PROD13",
+    "description": "Solar Outdoor Pathway Lights (6-pack)",
+    "category": "Outdoor Living",
+    "unit": "Pack",
+    "price": 39.99,
+    "weight": 3,
+    "color": "Black"
+  },
+  {
+    "id": "PROD14",
+    "description": "Bag of Premium Mulch (2 cu ft)",
+    "category": "Lawn & Garden",
+    "unit": "Bag",
+    "price": 5.99,
+    "weight": 20,
+    "color": "Brown"
+  }
 ]
