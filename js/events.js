@@ -1,16 +1,11 @@
 // js/events.js
 
 document.addEventListener("DOMContentLoaded", function () {
-  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const PHONE_PATTERN = /^\d{3}-\d{3}-\d{4}$/; // Matches 814-555-0123
-
   const form = document.getElementById("eventsForm");
   const message = document.getElementById("message");
 
-  // Safety check if form is missing on the page
   if (!form) return;
 
-  // Helper to toggle Bootstrap valid/invalid states
   function setValid(input, isValid) {
     input.classList.toggle("is-invalid", !isValid);
     input.classList.toggle("is-valid", isValid);
@@ -22,11 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const email = document.getElementById("email");
     const phone = document.getElementById("phone");
     
-    // Check if at least one participation radio button is selected
     const participationSelected = document.querySelector('input[name="participation"]:checked');
     const isParticipationValid = Boolean(participationSelected);
     
-    // Handle radio group error styling manually
     const participationFeedback = document.getElementById("participation-feedback");
     if (participationFeedback) {
       const participationContainer = participationFeedback.parentElement;
@@ -40,7 +33,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const results = [
       setValid(name, name.value.trim().length > 0),
       setValid(email, EMAIL_PATTERN.test(email.value.trim())),
-      // Phone is optional: empty is allowed, otherwise must match pattern
       setValid(phone, phone.value.trim() === "" || PHONE_PATTERN.test(phone.value.trim())),
       isParticipationValid
     ];
@@ -49,7 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   form.addEventListener("submit", async function (event) {
-    // CRITICAL: Stops the page from refreshing
     event.preventDefault();
     message.classList.add("d-none");
 
@@ -57,23 +48,22 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Retrieve the selected participation radio safely here
     const participationSelected = document.querySelector('input[name="participation"]:checked');
-
-    // Load existing members/registrations from storage.js
-    const registrations = typeof loadMembers === "function" ? await loadMembers() : [];
     const emailInput = document.getElementById("email");
     const email = emailInput.value.trim().toLowerCase();
 
-    // Prevent duplicate email registrations
-    if (registrations.some(r => r.email === email)) {
+    // 1. Load ONLY existing event registrations from events.json
+    const events = typeof loadEvents === "function" ? await loadEvents() : [];
+
+    // Check duplicate email specifically within the event list
+    if (events.some(e => e.email === email)) {
       emailInput.classList.remove("is-valid");
       emailInput.classList.add("is-invalid");
       emailInput.nextElementSibling.textContent = "This email is already registered for the event.";
       return;
     }
 
-    // Gather all form inputs into an object
+    // Build the registration object
     const newRegistration = {
       id: Date.now(),
       name: document.getElementById("name").value.trim(),
@@ -85,19 +75,20 @@ document.addEventListener("DOMContentLoaded", function () {
       sessions: Array.from(document.querySelectorAll('input[name="sessions"]:checked')).map(el => el.value)
     };
 
-    registrations.push(newRegistration);
+    // 2. Add to events array
+    events.push(newRegistration);
 
-    // Save back using your storage helper
-    if (typeof saveMembers === "function") {
-      await saveMembers(registrations);
+    // 3. Save ONLY to events.json via AJAX PUT request (leaving members.json untouched)
+    if (typeof saveEvents === "function") {
+      await saveEvents(events);
     }
 
-    // Reset form state and display success message
+    // Reset form and show success message
     form.reset();
     form.querySelectorAll(".is-valid").forEach(el => el.classList.remove("is-valid"));
     emailInput.nextElementSibling.textContent = "Please enter a valid email address.";
 
-    message.textContent = "Successfully registered for the event! We look forward to seeing you.";
+    message.textContent = "Successfully registered! Your data has been saved to events.json.";
     message.classList.remove("d-none");
   });
 });

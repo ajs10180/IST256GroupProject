@@ -1,10 +1,9 @@
-// members are saved in data/members.json through the dev server api (see dev.js)
+// --- Members API (Untouched & Safe) ---
 async function loadMembers() {
   const response = await fetch("/api/members");
   return response.json();
 }
 
-// send the whole member list to the server, which writes it to members.json
 async function saveMembers(members) {
   const response = await fetch("/api/members", {
     method: "PUT",
@@ -16,7 +15,24 @@ async function saveMembers(members) {
   }
 }
 
-// shared validation rules used by the sign up and edit forms
+// --- Events API (Dedicated to events.json) ---
+async function loadEvents() {
+  const response = await fetch("/api/events");
+  return response.json();
+}
+
+async function saveEvents(events) {
+  const response = await fetch("/api/events", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(events)
+  });
+  if (!response.ok) {
+    alert("Could not save to events.json. Is the server running (npm run dev)?");
+  }
+}
+
+// Shared validation rules
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^\d{3}-?\d{3}-?\d{4}$/;
 
