@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Community Art Gallery - IST256 Community Blog</title>
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <!-- Existing Community Blog CSS -->
+  <link href="css/style.css" rel="stylesheet">
+
+  <!-- Art Gallery CSS -->
+  <link href="css/art.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Navigation Menu -->
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="container">
+
+      <a class="navbar-brand" href="index.html">
+        Community Blog
+      </a>
+
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#menu"
+        aria-controls="menu"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="menu">
+        <ul class="navbar-nav ms-auto">
+
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Home</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="signup.html">Sign Up</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="members.html">Members</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="posts.html">Posts</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="products.html">Products</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="cart.html">Cart</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="events.html">Events</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link active"
+               aria-current="page"
+               href="art.html">
+              Art Gallery
+            </a>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Art Gallery Header -->
+  <header class="art-hero text-center">
+    <div class="container">
+
+      <h1 class="display-4">
+        Community Art Gallery
+      </h1>
+
+      <p class="lead">
+        Share your creativity with the IST 256 community!
+      </p>
+
+    </div>
+  </header>
+
+  <!-- Main Page Content -->
+  <main class="container my-5">
+
+    <!-- React displays the artwork form here -->
+    <div id="art-root"></div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center">
+    <div class="container">
+      &copy; 2026 Group 10 - IST 256
+    </div>
+  </footer>
+
+  <!-- Bootstrap JavaScript -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+  </script>
+
+  <!-- jQuery Library -->
+  <script
+    src="https://code.jquery.com/jquery-3.7.1.min.js">
+  </script>
+
+  <!-- React Library -->
+  <script
+    crossorigin
+    src="https://unpkg.com/react@18/umd/react.development.js">
+  </script>
+
+  <!-- React DOM Library -->
+  <script
+    crossorigin
+    src="https://unpkg.com/react-dom@18/umd/react-dom.development.js">
+  </script>
+
+  <!-- Babel for JSX -->
+  <script
+    src="https://unpkg.com/@babel/standalone/babel.min.js">
+  </script>
+
+ <!-- Community Art React Component -->
+<script>
+  window.addEventListener("DOMContentLoaded", async function () {
+    try {
+      const response = await fetch("js/art.js");
+
+      if (!response.ok) {
+        throw new Error("Could not load art.js: " + response.status);
+      }
+
+      const source = await response.text();
+
+      // Convert JSX to regular JavaScript using classic React
+      const compiled = Babel.transform(source, {
+        presets: [
+          ["react", { runtime: "classic" }]
+        ]
+      }).code;
+
+      // Execute the compiled React code
+      const script = document.createElement("script");
+      script.textContent = compiled;
+      document.body.appendChild(script);
+
+    } catch (error) {
+      console.error("Art Gallery loading error:", error);
+
+      document.getElementById("art-root").innerHTML =
+        '<div class="alert alert-danger">' +
+        'The art form could not load. Check the browser console.' +
+        '</div>';
+    }
+  });
+</script>
+
+</body>
+</html>
