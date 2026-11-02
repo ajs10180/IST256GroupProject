@@ -1,0 +1,24 @@
+
+[
+  {
+    "id": 1,
+    "title": "Sunset Over Campus",
+    "artist": "Sample Artist A",
+    "category": "Painting",
+    "description": "A colorful painting inspired by campus."
+  },
+  {
+    "id": 2,
+    "title": "Life in State College",
+    "artist": "Sample Artist B",
+    "category": "Photography",
+    "description": "A photograph capturing everyday student life."
+  },
+  {
+    "id": 3,
+    "title": "Digital Dreams",
+    "artist": "Sample Artist C",
+    "category": "Digital Art",
+    "description": "An original digital artwork exploring creativity."
+  }
+]

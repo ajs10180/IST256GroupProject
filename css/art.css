@@ -1,0 +1,90 @@
+
+/* Community Art Gallery styling */
+
+body {
+  background-color: #f7f8fa;
+  color: #292929;
+}
+
+/* Match Community Blog homepage */
+.art-hero {
+  background-color: #12617b;
+  color: white;
+  padding: 70px 20px;
+}
+
+.art-hero h1 {
+  font-size: 2.7rem;
+  font-weight: 700;
+}
+
+.art-hero p {
+  font-size: 1.2rem;
+}
+
+/* Art submission form */
+.art-form-card {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  border: 1px solid #dddddd;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+.section-title {
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-weight: 600;
+}
+
+/* Buttons */
+.art-btn {
+  background-color: #12617b;
+  border-color: #12617b;
+  color: white;
+}
+
+.art-btn:hover {
+  background-color: #09475a;
+  border-color: #09475a;
+  color: white;
+}
+
+/* Gallery display */
+.art-gallery-card {
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  background: white;
+  padding: 20px;
+  height: 100%;
+}
+
+.art-category {
+  color: #12617b;
+  font-weight: 600;
+}
+
+/* JSON demonstration */
+.json-box {
+  background-color: #20252b;
+  color: #b9f6ca;
+  padding: 20px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .art-hero h1 {
+    font-size: 2rem;
+  }
+
+  .art-form-card {
+    padding: 20px;
+  }
+}
