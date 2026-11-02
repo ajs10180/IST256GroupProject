@@ -120,27 +120,36 @@ function CommunityArt() {
     setJsonOutput(json);
     setSubmitting(true);
 
-    // Step 3: Submit JSON using jQuery AJAX
+    // Step 3: Submit JSON using jQuery AJAX to our RESTful API (server/api.js)
     $.ajax({
-      url: "https://jsonplaceholder.typicode.com/posts",
+      url: "/api/artworks",
       type: "POST",
       contentType: "application/json; charset=UTF-8",
       data: JSON.stringify(artworkData),
 
       success: function(response) {
-        // The test API simulates saving a submission
+        // The server saved it to data/artwork-submissions.json
         setMessage(
-          "Submission accepted by the test API! " +
-          "Response ID: " + response.id +
-          ". Your artwork has NOT been permanently published."
+          "Submission received! " +
+          "Submission ID: " + response.id +
+          ". Your artwork is " + response.reviewStatus.toLowerCase() +
+          " and will appear in the gallery once approved."
         );
       },
 
       error: function(xhr) {
+        // status 0 means the server could not be reached
+        if (xhr.status === 0) {
+          setErrors("Could not reach the server. Is it running (npm run dev)?");
+          return;
+        }
+        // show the server's own validation messages when it sends them
+        const body = xhr.responseJSON || {};
+        const details = Object.values(body.details || {});
         setErrors(
-          "AJAX submission failed. HTTP status: " +
-          xhr.status +
-          ". Check your internet connection and browser console."
+          details.length
+            ? details.join(" ")
+            : "AJAX submission failed. HTTP status: " + xhr.status + "."
         );
       },
 
@@ -347,7 +356,7 @@ function CommunityArt() {
             <p className="text-muted small">
               This page demonstrates form validation,
               JSON generation, React state, and AJAX
-              communication with a test REST API.
+              communication with our REST API.
             </p>
           </aside>
         </div>

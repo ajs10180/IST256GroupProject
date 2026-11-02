@@ -1,4 +1,4 @@
-// address of the restful api that will be built later
+// address of the restful orders api (server/api.js)
 const API_URL = "/api/orders";
 
 // the list of products loaded from data/products.json
@@ -136,13 +136,15 @@ $("#checkoutBtn").on("click", function () {
     method: "POST",
     contentType: "application/json",
     data: JSON.stringify(order)
-  }).done(function () {
+  }).done(function (saved) {
     saveCart([]);
     render();
-    showStatus("success", "Order sent to the API.");
-  }).fail(function () {
-    // the api is not built yet so this is expected for now
-    showStatus("warning", "Could not reach the API at " + API_URL + ". Your cart was kept.");
+    // the server works out the total from products.json, so show its number
+    showStatus("success", "Order " + saved.id + " placed. Total: $" + saved.total.toFixed(2) + ".");
+  }).fail(function (xhr) {
+    // status 0 means the server could not be reached, anything else is the api rejecting the order
+    const reason = xhr.status === 0 ? "Could not reach the API at " + API_URL : (xhr.responseJSON && xhr.responseJSON.error) || "The API returned " + xhr.status;
+    showStatus("warning", reason + ". Your cart was kept.");
   });
 });
 
