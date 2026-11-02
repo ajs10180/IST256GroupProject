@@ -3,23 +3,22 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
+const registrationsApi = require("./server/api");
+const { color, log } = require("./server/logger");
 
 const PORT = 3000;
 const ROOT = __dirname;
-const color = { green: "\x1b[32m", red: "\x1b[31m", yellow: "\x1b[33m", cyan: "\x1b[36m", dim: "\x1b[2m", bold: "\x1b[1m", reset: "\x1b[0m" };
 
 const types = {
   ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".json": "application/json",
   ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".ico": "image/x-icon"
 };
 
-// log every request, colored by status code
-function log(req, code) {
-  const c = code >= 400 ? color.red : code >= 300 ? color.yellow : color.green;
-  console.log(`${color.dim}${new Date().toLocaleTimeString()}${color.reset} ${c}${code}${color.reset} ${req.method} ${req.url}`);
-}
-
 const server = http.createServer(function (req, res) {
+  req.startTime = Date.now(); // used by the logger to show how long each request took
+  // restful registrations api for the options / finalization page (see server/api.js)
+  if (registrationsApi.handle(req, res)) return;
+
   const url = decodeURIComponent(req.url.split("?")[0]);
   // api for members and posts: GET reads data/<name>.json, PUT overwrites it
   const api = url.match(/^\/api\/(members|posts|products|events)$/);
@@ -77,6 +76,8 @@ const server = http.createServer(function (req, res) {
 server.on("listening", function () {
   console.log(`\n${color.green}${color.bold}✔ Server was started successfully!${color.reset}`);
   console.log(`${color.cyan}  Local: http://localhost:${PORT}${color.reset}`);
+  console.log(`${color.bold}  API routes:${color.reset}`);
+  registrationsApi.ROUTES.forEach(route => console.log(`${color.dim}    ${route}${color.reset}`));
   console.log(`${color.dim}  Reload the page to see changes. Break with Ctrl+C to stop.${color.reset}\n`);
   // open the default browser (windows, mac, linux)
   const opener = process.platform === "win32" ? "start" : process.platform === "darwin" ? "open" : "xdg-open";

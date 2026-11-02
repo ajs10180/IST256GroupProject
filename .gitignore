@@ -2,3 +2,4 @@ node_modules/
 data/members.json
 data/posts.json
 data/events.json
+data/registrations.json

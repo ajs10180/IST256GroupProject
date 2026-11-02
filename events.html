@@ -6,6 +6,8 @@
   <title>Event Registration - IST256 Community Blog</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
+  <!-- angularjs loads in the head so its ng-cloak style hides {{ }} until the page is ready -->
+  <script src="https://cdn.jsdelivr.net/npm/angular@1.8.3/angular.min.js"></script>
 </head>
 <body>
 
@@ -31,91 +33,76 @@
     </div>
   </nav>
 
-  <!-- events form -->
-  <main class="container mt-5" style="max-width: 600px;">
+  <!-- events form, run by the angularjs EventsController (js/events-controller.js) -->
+  <main class="container mt-5" style="max-width: 600px;" ng-app="registrationApp" ng-controller="EventsController as vm" ng-cloak>
     <h1 class="mb-4">Event Registration</h1>
 
-    <!-- success message shown after a valid submission -->
-    <div id="message" class="alert alert-success d-none"></div>
+    <!-- success message shown after the server saves the registration -->
+    <div id="message" class="alert alert-success" ng-show="vm.success">{{ vm.success }}</div>
+    <!-- shown when the server can't be reached or fails without field errors -->
+    <div class="alert alert-danger" ng-show="vm.serverError">{{ vm.serverError }}</div>
 
-    <form id="eventsForm" novalidate>
+    <form id="eventsForm" novalidate ng-submit="vm.submit()">
       <div class="mb-3">
         <label for="name" class="form-label">Full Name *</label>
-        <input type="text" class="form-control" id="name">
-        <div class="invalid-feedback">Please enter your full name.</div>
+        <input type="text" class="form-control" id="name" ng-model="vm.form.name" ng-class="vm.fieldClass('name')">
+        <div class="invalid-feedback">{{ vm.errors.name }}</div>
       </div>
 
       <div class="mb-3">
         <label for="email" class="form-label">Email Address *</label>
-        <input type="email" class="form-control" id="email">
-        <div class="invalid-feedback">Please enter a valid email address.</div>
+        <!-- allowInvalid keeps what was typed in the model so our own validation decides -->
+        <input type="email" class="form-control" id="email" ng-model="vm.form.email" ng-model-options="{ allowInvalid: true }" ng-class="vm.fieldClass('email')">
+        <div class="invalid-feedback">{{ vm.errors.email }}</div>
       </div>
 
       <div class="mb-3">
         <label for="phone" class="form-label">Phone Number (optional)</label>
-        <input type="tel" class="form-control" id="phone" placeholder="814-555-0123">
-        <div class="invalid-feedback">Phone must be 10 digits, like 814-555-0123.</div>
+        <input type="tel" class="form-control" id="phone" placeholder="814-555-0123" ng-model="vm.form.phone" ng-class="vm.fieldClass('phone')">
+        <div class="invalid-feedback">{{ vm.errors.phone }}</div>
       </div>
 
       <div class="mb-3">
         <label for="organization" class="form-label">Organization/Company (optional)</label>
-        <input type="text" class="form-control" id="organization">
-        <div class="invalid-feedback">Please enter your organization or company.</div>
+        <input type="text" class="form-control" id="organization" ng-model="vm.form.organization">
       </div>
 
       <div class="mb-3">
         <label for="job" class="form-label">Job Title (optional)</label>
-        <input type="text" class="form-control" id="job">
-        <div class="invalid-feedback">Please enter your job title.</div>
+        <input type="text" class="form-control" id="job" ng-model="vm.form.job">
       </div>
 
       <div class="mb-3">
         <label class="form-label d-block">Participation Type *</label>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="participation" id="participationInPerson" value="In-Person">
-        <label class="form-check-label" for="participationInPerson">In-Person</label>
-      </div>
-
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="participation" id="participationVirtual" value="Virtual">
-        <label class="form-check-label" for="participationVirtual">Virtual</label>
-      </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="participation" id="participationVip" value="VIP">
-        <label class="form-check-label" for="participationVip">VIP</label>
-      </div>
-
-      <div class="invalid-feedback" id="participation-feedback">Please select a participation type.</div>
+        <div class="form-check" ng-repeat="type in vm.participationTypes">
+          <input class="form-check-input" type="radio" name="participation" id="{{ type.id }}" ng-value="type.value" ng-model="vm.form.participation" ng-class="vm.fieldClass('participation')">
+          <label class="form-check-label" for="{{ type.id }}">{{ type.value }}</label>
+        </div>
+        <!-- d-block because bootstrap only shows feedback next to an invalid input, and these radios are in their own divs -->
+        <div class="invalid-feedback" id="participation-feedback" ng-class="{ 'd-block': vm.submitted && vm.errors.participation }">{{ vm.errors.participation }}</div>
       </div>
 
       <div class="mb-3">
-      <label class="form-label d-block">Session Preferences (optional)</label>
-    
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="sessions" id="sessionKeynote" value="Keynote Address">
-        <label class="form-check-label" for="sessionKeynote">Opening Keynote Address</label>
+        <label class="form-label d-block">Session Preferences (optional)</label>
+        <div class="form-check" ng-repeat="session in vm.sessions">
+          <input class="form-check-input" type="checkbox" name="sessions" id="{{ session.id }}" ng-model="session.checked">
+          <label class="form-check-label" for="{{ session.id }}">{{ session.label }}</label>
+        </div>
+        <div class="form-text text-muted">Select any sessions you plan to attend.</div>
       </div>
 
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="sessions" id="sessionTrackA" value="Track A: Web Development">
-        <label class="form-check-label" for="sessionTrackA">Track A: Modern Web Development</label>
-      </div>
+      <button type="submit" class="btn btn-success" ng-disabled="vm.saving">
+        {{ vm.saving ? "Registering..." : "Register for Event" }}
+      </button>
+    </form>
 
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="sessions" id="sessionTrackB" value="Track B: System Admin">
-        <label class="form-check-label" for="sessionTrackB">Track B: Network & System Admin</label>
-      </div>
-
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="sessions" id="sessionWorkshop" value="Interactive Workshop">
-        <label class="form-check-label" for="sessionWorkshop">Interactive Hands-on Workshop</label>
-      </div>
-    
-      <div class="form-text text-muted">Select any sessions you plan to attend.</div>
-      </div>
-
-      <button type="submit" class="btn btn-success">Register for Event</button>
-      </form>
+    <!-- the json document from the last submit and what the rest api answered -->
+    <div class="card mt-4" ng-show="vm.lastSent">
+      <div class="card-header">JSON sent to POST /api/registrations</div>
+      <pre class="card-body mb-0">{{ vm.lastSent | json }}</pre>
+      <div class="card-header border-top">Server response</div>
+      <pre class="card-body mb-0">{{ vm.lastResponse ? (vm.lastResponse | json) : "Waiting for the server..." }}</pre>
+    </div>
   </main>
 
   <footer class="text-center">
@@ -125,6 +112,8 @@
   <!-- add bootstrap and our scripts to be loaded into the page -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/storage.js"></script>
-  <script src="js/events.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/registration-service.js"></script>
+  <script src="js/events-controller.js"></script>
 </body>
 </html>
