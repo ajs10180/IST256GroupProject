@@ -1,0 +1,34 @@
+.billing-card {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+.billing-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.billing-card .form-control {
+  min-height: 44px;
+}
+
+.billing-card .form-control:focus {
+  border-color: #12607b;
+  box-shadow: 0 0 0 0.2rem rgba(18, 96, 123, 0.16);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+@media (max-width: 575.98px) {
+  .billing-card {
+    padding: 1rem;
+  }
+}

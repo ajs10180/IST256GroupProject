@@ -27,6 +27,7 @@ const registrations = {
     if (data.sessions !== undefined && (!Array.isArray(data.sessions) || !data.sessions.every(s => typeof s === "string"))) {
       errors.sessions = "Sessions must be a list of session names";
     }
+    
     return errors;
   },
   clean: function (data) {
@@ -55,6 +56,30 @@ const orders = {
       if (!item || !products.some(p => p.id === item.id)) errors["items[" + i + "]"] = "Unknown product " + (item && item.id);
       else if (!Number.isInteger(item.quantity) || item.quantity < 1) errors["items[" + i + "]"] = "Quantity must be a whole number of at least 1";
     });
+
+    const billing = data.billing;
+
+    if (!billing || typeof billing !== "object") {
+      errors.billing = "Billing details are required";
+    } else {
+      if (text(billing.fullName) === "") {
+        errors.fullName = "Full name is required";
+      }
+      if (billing.paymentMethod !== "Credit Card") {
+        errors.paymentMethod = "Only Credit Card payments are accepted";
+      }
+      const address = billing.address;
+      if (!address || typeof address !== "object") {
+        errors.address = "Billing address is required";
+      } else {
+        if (text(address.street) === "") errors.street = "Street address is required";
+        if (text(address.city) === "") errors.city = "City is required";
+        if (text(address.state) === "") errors.state = "State is required";
+        if (!/^\d{5}(?:-\d{4})?$/.test(text(address.zipCode))) {
+          errors.zipCode = "ZIP code must be a valid 5-digit or 9-digit ZIP+4 code";
+        }
+      }
+    }
     return errors;
   },
   clean: function (data) {
@@ -64,7 +89,17 @@ const orders = {
       return { id: p.id, description: p.description, category: p.category, unit: p.unit, price: p.price, quantity: item.quantity };
     });
     const total = Math.round(items.reduce((sum, i) => sum + i.price * i.quantity, 0) * 100) / 100;
-    return { items: items, total: total, status: "Received" };
+    const address = data.billing.address;
+    const cleanAddress = { 
+      street: text(address.street), 
+      city: text(address.city), 
+      state: text(address.state), 
+      zipCode: text(address.zipCode) 
+    };
+    return { items: items, total: total, status: "Received",
+      billing: {fullName: text(data.billing.fullName), paymentMethod: data.billing.paymentMethod, address: cleanAddress },
+      shipping: {method: "Standard shipping", address: cleanAddress, cost:0}
+     };
   }
 };
 
