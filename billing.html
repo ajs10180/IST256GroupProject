@@ -7,6 +7,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
   <link href="css/billing.css" rel="stylesheet">
+  <!-- angularjs loads in the head so its ng-cloak style hides {{ }} until the page is ready -->
+  <script src="https://cdn.jsdelivr.net/npm/angular@1.8.3/angular.min.js"></script>
 </head>
 <body ng-controller="BillingController">
 
@@ -33,81 +35,94 @@
   </nav>
 
   <!-- billing page -->
-  <main class="container mt-5">
+  <main class="container mt-5" ng-cloak>
     <h1>Billing Details</h1>
+
+    <!-- result of placing the order, or what went wrong -->
+    <div class="alert" ng-class="'alert-' + notice.type" role="alert" ng-if="notice">{{ notice.text }}</div>
+
     <div class="row g-4 align-items-start">
         <div class="col-lg-7">
             <p>Please fill out the form below to complete your purchase. All fields are required.</p>
 
-    <!-- form to collect billing details -->
-    <form id="billingForm" name="billingForm" 
+    <!-- form to collect billing details. fields turn red or green once they have been left or the form is submitted -->
+    <form id="billingForm" name="billingForm"
     ng-submit="placeOrder(billingForm)" novalidate>
       <div class="mb-3">
         <label for="fullName" class="form-label">Full Name</label>
-        <input type="text" id="fullName" name="fullName" class="form-control" ng-model="form.fullName" required>
-        <div class="invalid-feedback">Please enter your full name.</div>
+        <input type="text" id="fullName" name="fullName" class="form-control" ng-class="fieldClass('fullName')"
+            ng-model="form.fullName" autocomplete="name"
+            ng-pattern="patterns.name" ng-minlength="2" ng-maxlength="100" required>
+        <div class="invalid-feedback">{{ fieldError('fullName') }}</div>
       </div>
 
       <div class="mb-3">
         <label for="street" class="form-label">Street Address</label>
-        <input type="text" id="street" name="street" class="form-control" ng-model="form.address.street" required>
-        <div class="invalid-feedback">Please enter your street address.</div>
+        <input type="text" id="street" name="street" class="form-control" ng-class="fieldClass('street')"
+            ng-model="form.address.street" autocomplete="street-address"
+            ng-minlength="3" ng-maxlength="100" required>
+        <div class="invalid-feedback">{{ fieldError('street') }}</div>
       </div>
 
       <div class="row">
         <div class="col-md-5 mb-3">
             <label for="city" class="form-label">City</label>
-            <input type="text" id="city" name="city" class="form-control" ng-model="form.address.city" required>
-            <div class="invalid-feedback">Please enter your city.</div>
+            <input type="text" id="city" name="city" class="form-control" ng-class="fieldClass('city')"
+                ng-model="form.address.city" autocomplete="address-level2"
+                ng-pattern="patterns.name" ng-minlength="2" ng-maxlength="60" required>
+            <div class="invalid-feedback">{{ fieldError('city') }}</div>
         </div>
         <div class="col-md-3 mb-3">
             <label for="state" class="form-label">State</label>
-            <input type="text" id="state" name="state" class="form-control" maxlength="2" placeholder="PA" ng-model="form.address.state" ng-pattern="/^[A-Za-z]{2}$/" required>
-            <div class="invalid-feedback">Please enter your state.</div>
+            <input type="text" id="state" name="state" class="form-control" ng-class="fieldClass('state')"
+                placeholder="PA" ng-model="form.address.state" autocomplete="address-level1"
+                pay-field="state" required>
+            <div class="invalid-feedback">{{ fieldError('state') }}</div>
         </div>
 
         <div class="col-md-4 mb-3">
             <label for="zipCode" class="form-label">ZIP Code</label>
-            <input type="text" id="zipCode" name="zipCode" class="form-control"
-                placeholder="16802" ng-model="form.address.zipCode"
-                ng-pattern="/^\d{5}(?:-\d{4})?$/" required>
-            <div class="invalid-feedback">Please enter your ZIP code.</div>
+            <input type="text" id="zipCode" name="zipCode" class="form-control" ng-class="fieldClass('zipCode')"
+                placeholder="16802" ng-model="form.address.zipCode" autocomplete="postal-code" inputmode="numeric"
+                pay-field="zip" ng-pattern="patterns.zip" required>
+            <div class="invalid-feedback">{{ fieldError('zipCode') }}</div>
         </div>
       </div>
 
       <section class="billing-card mt-4">
         <h2>Payment Method</h2>
-        <p>Credit or debit card</p>
+        <p>Credit or debit card. Spaces and the slash are added for you as you type.</p>
 
         <div class="mb-3">
             <label for="cardNumber" class="form-label">Card Number</label>
-            <input type="text" id="cardNumber" name="cardNumber" class="form-control"
+            <input type="text" id="cardNumber" name="cardNumber" class="form-control" ng-class="fieldClass('cardNumber')"
                 placeholder="1234 5678 9012 3456" ng-model="form.cardNumber"
-                autocomplete="cc-number" inputmode="numeric" maxlength="23"
-                ng-pattern="/^[0-9 -]+$/" required>
-            <div class="invalid-feedback">Please enter a valid card number.</div>
+                autocomplete="cc-number" inputmode="numeric"
+                pay-field="card" required>
+            <div class="invalid-feedback">{{ fieldError('cardNumber') }}</div>
         </div>
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="expirationDate" class="form-label">Expiration Date</label>
-                <input type="text" id="expirationDate" name="expirationDate" class="form-control"
+                <input type="text" id="expirationDate" name="expirationDate" class="form-control" ng-class="fieldClass('expirationDate')"
                     placeholder="MM/YY" ng-model="form.expirationDate"
-                    autocomplete="cc-exp" inputmode="numeric" maxlength="5"
-                    ng-pattern="/^(0[1-9]|1[0-2])\/([0-9]{2})$/" required>
-                <div class="invalid-feedback">Please enter a valid expiration date.</div>
+                    autocomplete="cc-exp" inputmode="numeric"
+                    pay-field="expiry" ng-pattern="patterns.expiry" required>
+                <div class="invalid-feedback">{{ fieldError('expirationDate') }}</div>
             </div>
             <div class="col-md-6 mb-3">
                 <label for="cvv" class="form-label">CVV</label>
-                <input type="password" id="cvv" name="cvv" class="form-control"
+                <input type="password" id="cvv" name="cvv" class="form-control" ng-class="fieldClass('cvv')"
                     placeholder="123" ng-model="form.cvv"
-                    autocomplete="cc-csc" inputmode="numeric" maxlength="4"
-                    ng-pattern="/^\d{3,4}$/"
-                    required>
-                <div class="invalid-feedback">Please enter a valid CVV.</div>
+                    autocomplete="cc-csc" inputmode="numeric"
+                    pay-field="cvv" ng-pattern="patterns.cvv" required>
+                <div class="invalid-feedback">{{ fieldError('cvv') }}</div>
             </div>
         </div>
       </section>
-      <button type="submit" class="btn btn-primary mt-3">Place Order</button>
+      <button type="submit" class="btn btn-primary mt-3" ng-disabled="saving || !items.length">
+        {{ saving ? "Placing order..." : "Place Order" }}
+      </button>
     </form>
     </div>
     <aside class="col-lg-5">
@@ -131,7 +146,7 @@
                 <span><strong>{{ total | currency }}</strong></span>
             </div>
             <p class="mt-3">Item(s) will be shipped to the address provided above.</p>
-            <p ng-if="!items.length">
+            <p ng-if="loaded && !items.length && !orderPlaced">
                 Your cart is empty. Please <a href="products.html">add items to your cart</a> before proceeding to checkout.
             </p>
         </section>
@@ -142,8 +157,7 @@
     <div class="container">&copy; 2026 Group 10 - IST 256</div>
 </footer>
 
-  <!-- add angularjs, bootstrap and our scripts to be loaded into the page -->
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+  <!-- add bootstrap and our scripts to be loaded into the page -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/billing.js"></script>
 </body>

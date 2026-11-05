@@ -45,41 +45,73 @@ function loadProducts() {
   }
 }
 
+// two-letter codes the billing form accepts: the states, DC, territories and military mail
+// (js/billing.js keeps the same list so the form and the server agree)
+const US_STATES = [
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+  "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+  "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "AS", "GU", "MP", "PR", "VI", "AA", "AE", "AP"
+];
+const NAME_PATTERN = /^\p{L}[\p{L} .'-]*$/u; // letters, spaces, periods, apostrophes and hyphens
+const ZIP_PATTERN = /^\d{5}(?:-\d{4})?$/;
+const MAX_ITEMS = 50;
+const MAX_QUANTITY = 99;
+
 const orders = {
   label: "Order",
   file: "orders.json",
   validate: function (data) {
-    if (!Array.isArray(data.items) || data.items.length === 0) return { items: "An order needs at least one item" };
-    const products = loadProducts();
     const errors = {};
-    data.items.forEach(function (item, i) {
-      if (!item || !products.some(p => p.id === item.id)) errors["items[" + i + "]"] = "Unknown product " + (item && item.id);
-      else if (!Number.isInteger(item.quantity) || item.quantity < 1) errors["items[" + i + "]"] = "Quantity must be a whole number of at least 1";
-    });
+
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+      errors.items = "An order needs at least one item";
+    } else if (data.items.length > MAX_ITEMS) {
+      errors.items = "An order can have at most " + MAX_ITEMS + " different items";
+    } else {
+      const products = loadProducts();
+      data.items.forEach(function (item, i) {
+        if (!item || !products.some(p => p.id === item.id)) errors["items[" + i + "]"] = "Unknown product " + (item && item.id);
+        else if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QUANTITY) errors["items[" + i + "]"] = "Quantity must be a whole number from 1 to " + MAX_QUANTITY;
+      });
+    }
 
     const billing = data.billing;
-
-    if (!billing || typeof billing !== "object") {
+    if (!billing || typeof billing !== "object" || Array.isArray(billing)) {
       errors.billing = "Billing details are required";
-    } else {
-      if (text(billing.fullName) === "") {
-        errors.fullName = "Full name is required";
-      }
-      if (billing.paymentMethod !== "Credit Card") {
-        errors.paymentMethod = "Only Credit Card payments are accepted";
-      }
-      const address = billing.address;
-      if (!address || typeof address !== "object") {
-        errors.address = "Billing address is required";
-      } else {
-        if (text(address.street) === "") errors.street = "Street address is required";
-        if (text(address.city) === "") errors.city = "City is required";
-        if (text(address.state) === "") errors.state = "State is required";
-        if (!/^\d{5}(?:-\d{4})?$/.test(text(address.zipCode))) {
-          errors.zipCode = "ZIP code must be a valid 5-digit or 9-digit ZIP+4 code";
-        }
-      }
+      return errors;
     }
+
+    const fullName = text(billing.fullName);
+    if (fullName === "") errors.fullName = "Full name is required";
+    else if (fullName.length < 2 || fullName.length > 100 || !NAME_PATTERN.test(fullName)) {
+      errors.fullName = "Name must be 2 to 100 characters, using letters, spaces, periods, apostrophes and hyphens";
+    }
+
+    if (billing.paymentMethod !== "Credit Card") errors.paymentMethod = "Only Credit Card payments are accepted";
+
+    const address = billing.address;
+    if (!address || typeof address !== "object" || Array.isArray(address)) {
+      errors.address = "Billing address is required";
+      return errors;
+    }
+
+    const street = text(address.street);
+    if (street === "") errors.street = "Street address is required";
+    else if (street.length < 3 || street.length > 100) errors.street = "Street address must be 3 to 100 characters";
+
+    const city = text(address.city);
+    if (city === "") errors.city = "City is required";
+    else if (city.length < 2 || city.length > 60 || !NAME_PATTERN.test(city)) {
+      errors.city = "City must be 2 to 60 characters, using letters, spaces, periods, apostrophes and hyphens";
+    }
+
+    const state = text(address.state);
+    if (state === "") errors.state = "State is required";
+    else if (!US_STATES.includes(state.toUpperCase())) errors.state = "State must be a valid 2-letter US state code, like PA";
+
+    const zipCode = text(address.zipCode);
+    if (!ZIP_PATTERN.test(zipCode) || /^0{5}/.test(zipCode)) errors.zipCode = "ZIP code must be a real 5-digit or ZIP+4 code, like 16802";
+
     return errors;
   },
   clean: function (data) {
@@ -90,16 +122,20 @@ const orders = {
     });
     const total = Math.round(items.reduce((sum, i) => sum + i.price * i.quantity, 0) * 100) / 100;
     const address = data.billing.address;
-    const cleanAddress = { 
-      street: text(address.street), 
-      city: text(address.city), 
-      state: text(address.state), 
-      zipCode: text(address.zipCode) 
+    const cleanAddress = {
+      street: text(address.street),
+      city: text(address.city),
+      state: text(address.state).toUpperCase(),
+      zipCode: text(address.zipCode)
     };
-    return { items: items, total: total, status: "Received",
-      billing: {fullName: text(data.billing.fullName), paymentMethod: data.billing.paymentMethod, address: cleanAddress },
-      shipping: {method: "Standard shipping", address: cleanAddress, cost:0}
-     };
+    // card number, expiration and CVV are never sent or saved, only the payment method
+    return {
+      items: items,
+      total: total,
+      status: "Received",
+      billing: { fullName: text(data.billing.fullName), paymentMethod: data.billing.paymentMethod, address: cleanAddress },
+      shipping: { method: "Standard shipping", address: cleanAddress, cost: 0 }
+    };
   }
 };
 
