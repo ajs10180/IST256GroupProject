@@ -182,4 +182,86 @@ const artworks = {
   }
 };
 
-module.exports = { registrations, orders, artworks };
+// ---- returns: returns.html return requests ----
+// like orders, prices come from data/products.json and the refund total is worked out here,
+// so changing a price in the browser has no effect. js/returns.js keeps the same lists for its dropdowns.
+const RETURN_REASONS = ["Defective or damaged", "Wrong item received", "Not as described", "No longer needed", "Found a better price", "Other"];
+const RETURN_CONDITIONS = ["Unopened", "Opened, like new", "Used", "Damaged"];
+const RETURN_RESOLUTIONS = ["Refund", "Exchange", "Store Credit"];
+const ORDER_NUMBER_PATTERN = /^[A-Za-z0-9-]{4,20}$/;
+const MAX_COMMENTS = 500;
+
+const returns = {
+  label: "Return",
+  file: "returns.json",
+  validate: function (data) {
+    const errors = {};
+
+    const name = text(data.name);
+    if (name === "") errors.name = "Full name is required";
+    else if (name.length < 2 || name.length > 100 || !NAME_PATTERN.test(name)) {
+      errors.name = "Name must be 2 to 100 characters, using letters, spaces, periods, apostrophes and hyphens";
+    }
+
+    const email = text(data.email);
+    if (!EMAIL_PATTERN.test(email) || email.length > 254) errors.email = "A valid email is required";
+
+    const orderNumber = text(data.orderNumber);
+    if (orderNumber !== "" && !ORDER_NUMBER_PATTERN.test(orderNumber)) {
+      errors.orderNumber = "Order number can only use letters, numbers and dashes (4 to 20 characters)";
+    }
+
+    if (!RETURN_RESOLUTIONS.includes(data.resolution)) errors.resolution = "Resolution must be one of: " + RETURN_RESOLUTIONS.join(", ");
+
+    const comments = text(data.comments);
+    if (comments.length > MAX_COMMENTS) errors.comments = "Comments can be " + MAX_COMMENTS + " characters at most";
+
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+      errors.items = "A return needs at least one item";
+    } else if (data.items.length > MAX_ITEMS) {
+      errors.items = "A return can have at most " + MAX_ITEMS + " different items";
+    } else {
+      const products = loadProducts();
+      const seen = [];
+      data.items.forEach(function (item, i) {
+        const key = "items[" + i + "]";
+        if (!item || !products.some(p => p.id === item.id)) {
+          errors[key] = "Unknown product " + (item && item.id);
+          return;
+        }
+        if (seen.includes(item.id)) errors[key] = "Each product can only be listed once, change its quantity instead";
+        seen.push(item.id);
+        if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QUANTITY) errors[key + ".quantity"] = "Quantity must be a whole number from 1 to " + MAX_QUANTITY;
+        if (!RETURN_REASONS.includes(item.reason)) errors[key + ".reason"] = "Please choose a reason for the return";
+        if (!RETURN_CONDITIONS.includes(item.condition)) errors[key + ".condition"] = "Please choose the condition of the item";
+      });
+
+      // "Other" is not a reason by itself, so the customer has to explain in the comments
+      if (!errors.comments && comments === "" && data.items.some(item => item && item.reason === "Other")) {
+        errors.comments = "Please describe the reason for your return";
+      }
+    }
+
+    return errors;
+  },
+  clean: function (data) {
+    const products = loadProducts();
+    const items = data.items.map(function (item) {
+      const p = products.find(p => p.id === item.id);
+      return { id: p.id, description: p.description, category: p.category, price: p.price, quantity: item.quantity, reason: item.reason, condition: item.condition };
+    });
+    const refundTotal = Math.round(items.reduce((sum, i) => sum + i.price * i.quantity, 0) * 100) / 100;
+    return {
+      name: text(data.name),
+      email: text(data.email).toLowerCase(),
+      orderNumber: text(data.orderNumber),
+      resolution: data.resolution,
+      comments: text(data.comments),
+      items: items,
+      refundTotal: refundTotal,
+      status: "Pending Review" // new requests always start here, whatever the browser sent
+    };
+  }
+};
+
+module.exports = { registrations, orders, artworks, returns };

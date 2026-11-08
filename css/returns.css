@@ -1,0 +1,88 @@
+/* cards on the returns page, same look as the billing page cards */
+.returns-card {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.returns-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.returns-card .form-control,
+.returns-card .form-select {
+  min-height: 44px;
+}
+
+.returns-card .form-control:focus,
+.returns-card .form-select:focus {
+  border-color: #12607b;
+  box-shadow: 0 0 0 0.2rem rgba(18, 96, 123, 0.16);
+}
+
+/* product icons (google material symbols): big in the return list, small in the search results.
+   the icon stylesheet loads after this one and sets its own size, so these selectors name both classes */
+.material-symbols-outlined.product-thumb,
+.material-symbols-outlined.product-thumb-sm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: #e4edf2;
+  color: #12607b;
+  user-select: none;
+}
+
+.material-symbols-outlined.product-thumb {
+  width: 88px;
+  height: 88px;
+  border-radius: 10px;
+  font-size: 48px;
+}
+
+.material-symbols-outlined.product-thumb-sm {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  font-size: 28px;
+}
+
+/* one product the customer wants to return: picture on the left, details on the right */
+.return-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid #dee2e6;
+}
+
+.return-items .return-item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.return-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+@media (max-width: 575.98px) {
+  .returns-card {
+    padding: 1rem;
+  }
+
+  /* stack the picture above the details on phones */
+  .return-item {
+    flex-direction: column;
+  }
+}
