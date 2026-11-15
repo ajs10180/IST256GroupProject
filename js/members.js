@@ -32,7 +32,7 @@ async function render() {
   });
 
   emptyMsg.classList.toggle("d-none", members.length > 0);
-  jsonView.textContent = JSON.stringify(members, null, 2);
+  showDatabase("members", jsonView);
 }
 
 // fill the edit form with the chosen member and show it

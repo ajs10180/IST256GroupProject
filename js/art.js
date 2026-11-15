@@ -364,7 +364,7 @@ function CommunityArt() {
       </div>
 
       {/* JSON output for assignment evidence */}
-      {jsonOutput && (
+      {window.DEBUG && jsonOutput && (
         <section className="mt-5">
           <h3>Generated JSON Document</h3>
           <p>

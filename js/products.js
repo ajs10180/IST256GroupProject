@@ -54,7 +54,7 @@ function render() {
     body.append(row);
   });
 
-  $("#jsonView").text(JSON.stringify(products, null, 2));
+  showDatabase("products", document.getElementById("jsonView"));
   applyFilters();
 }
 

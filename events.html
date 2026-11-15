@@ -8,6 +8,7 @@
   <link href="css/style.css" rel="stylesheet">
   <!-- angularjs loads in the head so its ng-cloak style hides {{ }} until the page is ready -->
   <script src="https://cdn.jsdelivr.net/npm/angular@1.8.3/angular.min.js"></script>
+  <script src="js/debug.js"></script>
 </head>
 <body>
 
@@ -98,7 +99,7 @@
     </form>
 
     <!-- the json document from the last submit and what the rest api answered -->
-    <div class="card mt-4" ng-show="vm.lastSent">
+    <div class="card mt-4" ng-show="vm.lastSent" data-debug>
       <div class="card-header">JSON sent to POST /api/registrations</div>
       <pre class="card-body mb-0">{{ vm.lastSent | json }}</pre>
       <div class="card-header border-top">Server response</div>

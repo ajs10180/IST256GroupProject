@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
   <!-- angularjs loads in the head so its ng-cloak style hides {{ }} until the page is ready -->
   <script src="https://cdn.jsdelivr.net/npm/angular@1.8.3/angular.min.js"></script>
+  <script src="js/debug.js"></script>
 </head>
 <body ng-controller="ReturnsController">
 
@@ -180,8 +181,10 @@
     </div>
 
     <!-- the json document that is sent to the api, updated as the form is filled in -->
-    <h2 class="mt-5">Return JSON</h2>
-    <pre class="bg-white border p-3">{{ buildDocument() | json }}</pre>
+    <div data-debug>
+      <h2 class="mt-5">Return JSON</h2>
+      <pre class="bg-white border p-3">{{ buildDocument() | json }}</pre>
+    </div>
   </main>
 
   <footer class="text-center">

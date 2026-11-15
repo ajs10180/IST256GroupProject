@@ -52,7 +52,7 @@ function render() {
     body.append(row);
   });
 
-  $("#jsonView").text(JSON.stringify(posts, null, 2));
+  showDatabase("posts", document.getElementById("jsonView"));
   applyFilters();
 }
 

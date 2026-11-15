@@ -70,7 +70,7 @@ function render() {
   $("#emptyMsg").toggleClass("d-none", cart.length > 0);
   $("#clearBtn").prop("disabled", cart.length === 0);
   $("#checkoutBtn").prop("disabled", cart.length === 0);
-  $("#jsonView").text(JSON.stringify(cart, null, 2));
+  showDatabase("carts/" + cartId(), document.getElementById("jsonView"));
 }
 
 // plus and minus buttons change the quantity, minus removes the item at 1
