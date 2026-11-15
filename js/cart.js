@@ -9,8 +9,24 @@ function loadCart() {
   return JSON.parse(localStorage.getItem("cart") || "[]");
 }
 
+// each browser gets a cart id, so its cart is saved as one document in the carts collection of MongoDB
+function cartId() {
+  let id = localStorage.getItem("cartId");
+  if (!id) {
+    id = "cart-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    localStorage.setItem("cartId", id);
+  }
+  return id;
+}
+
 function saveCart(cart) {
   localStorage.setItem("cart", JSON.stringify(cart));
+  // copy the cart to the database too (PUT creates the document the first time), the page still works if this fails
+  fetch("/api/carts/" + cartId(), {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items: cart })
+  }).catch(function () {});
 }
 
 // look up the full product details for an id

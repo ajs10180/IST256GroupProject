@@ -6,3 +6,4 @@ data/registrations.json
 data/orders.json
 data/artwork-submissions.json
 data/returns.json
+data/db/

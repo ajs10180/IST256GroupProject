@@ -1,7 +1,5 @@
 // the rest resources server/api.js serves. each one says where it is saved, how to check incoming json
 // (validate returns { field: message } for anything wrong) and how to clean it before saving.
-const fs = require("fs");
-const path = require("path");
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^\d{3}-?\d{3}-?\d{4}$/;
@@ -15,7 +13,7 @@ const PARTICIPATION_TYPES = ["In-Person", "Virtual", "VIP"];
 
 const registrations = {
   label: "Registration",
-  file: "registrations.json",
+  collection: "registrations",
   unique: "email",
   duplicateMessage: "This email is already registered for the event.",
   validate: function (data) {
@@ -36,13 +34,16 @@ const registrations = {
 };
 
 // ---- orders: cart.html checkout ----
-// prices always come from data/products.json so a changed price in the browser can't change the total
+// prices always come from the products collection so a changed price in the browser can't change the total.
+// server/api.js refreshes this list from MongoDB (setProducts) before it checks an order or a return.
+let productList = [];
+
+function setProducts(list) {
+  productList = list;
+}
+
 function loadProducts() {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "products.json"), "utf8"));
-  } catch (e) {
-    return [];
-  }
+  return productList;
 }
 
 // two-letter codes the billing form accepts: the states, DC, territories and military mail
@@ -59,7 +60,14 @@ const MAX_QUANTITY = 99;
 
 const orders = {
   label: "Order",
-  file: "orders.json",
+  collection: "orders",
+  // the billing details and the shipping details are also saved in their own collections
+  related: function (order) {
+    return {
+      billings: Object.assign({ orderId: order.id }, order.billing),
+      shippings: Object.assign({ orderId: order.id }, order.shipping)
+    };
+  },
   validate: function (data) {
     const errors = {};
 
@@ -140,7 +148,7 @@ const orders = {
 };
 
 // ---- artworks: art.html submissions ----
-// saved to their own file so the sample gallery in data/artworks.json is never changed
+// saved in the artworks collection, the sample gallery in data/artworks.json is never changed
 const ART_CATEGORIES = ["Painting", "Drawing", "Photography", "Digital Art", "Sculpture"];
 const VISIBILITY = ["Public Gallery", "Members Only", "Private Review"];
 
@@ -154,7 +162,7 @@ function isWebUrl(value) {
 
 const artworks = {
   label: "Artwork submission",
-  file: "artwork-submissions.json",
+  collection: "artworks",
   validate: function (data) {
     const errors = {};
     if (text(data.artistName) === "") errors.artistName = "Artist name is required.";
@@ -193,7 +201,7 @@ const MAX_COMMENTS = 500;
 
 const returns = {
   label: "Return",
-  file: "returns.json",
+  collection: "returns",
   validate: function (data) {
     const errors = {};
 
@@ -264,4 +272,22 @@ const returns = {
   }
 };
 
-module.exports = { registrations, orders, artworks, returns };
+// ---- carts: the shopping cart from cart.html, one document per browser (upserted, see js/cart.js) ----
+const carts = {
+  label: "Cart",
+  collection: "carts",
+  upsert: true,
+  validate: function (data) {
+    const errors = {};
+    if (!Array.isArray(data.items) || data.items.length > MAX_ITEMS) errors.items = "Cart items must be a list of at most " + MAX_ITEMS + " items";
+    else if (!data.items.every(i => i && typeof i.id === "string" && Number.isInteger(i.quantity) && i.quantity >= 1 && i.quantity <= MAX_QUANTITY)) {
+      errors.items = "Each cart item needs an id and a quantity from 1 to " + MAX_QUANTITY;
+    }
+    return errors;
+  },
+  clean: function (data) {
+    return { items: data.items.map(i => ({ id: i.id, quantity: i.quantity })) };
+  }
+};
+
+module.exports = { registrations, orders, artworks, returns, carts, setProducts };

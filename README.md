@@ -21,3 +21,12 @@ Both pages will use HTML, CSS, and Bootstrap for a responsive layout.
 
 JavaScript will validate required fields before submission. Member records will be represented in JSON format and displayed dynamically in a table or cards.
 
+
+## Running with MongoDB
+
+```bash
+npm install
+npm run dev
+```
+
+`npm run dev` starts the database along with the web server. It uses a MongoDB already running on `localhost:27017` (or `MONGODB_URI`), and otherwise launches its own `mongod` with files in `data/db` (the first run downloads the mongod binary). Connect Compass to `mongodb://127.0.0.1:27017/ist256` to see the collections: `products`, `carts`, `shipping`, `billing`, `returns` (plus `orders`, `registrations`, `artworks`, `members`, `posts`, `events`).

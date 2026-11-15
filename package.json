@@ -4,6 +4,11 @@
   "description": "IST256 Community Blog member management pages",
   "private": true,
   "scripts": {
-    "dev": "node dev.js"
+    "dev": "node dev.js",
+    "start": "node dev.js"
+  },
+  "dependencies": {
+    "mongodb-memory-server": "^10.1.4",
+    "mongoose": "^8.9.5"
   }
 }
