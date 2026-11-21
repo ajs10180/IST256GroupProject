@@ -180,6 +180,41 @@
       </aside>
     </div>
 
+    <!-- find the returns saved under an email, change what we should do with them or delete them -->
+    <section class="returns-card mt-5" id="myReturns">
+      <h2>My Return Requests</h2>
+      <form class="row g-2 mb-3" ng-submit="lookupReturns()" novalidate>
+        <div class="col-md-8">
+          <input type="email" id="lookupEmail" class="form-control" ng-model="lookup.email" ng-model-options="{ allowInvalid: true }"
+              placeholder="Email used on the return">
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-outline-primary w-100" ng-disabled="lookup.loading">Look Up Returns</button>
+        </div>
+      </form>
+
+      <div class="alert py-2" ng-class="'alert-' + lookup.notice.type" role="alert" ng-if="lookup.notice">{{ lookup.notice.text }}</div>
+
+      <div class="return-item" ng-repeat="saved in lookup.returns track by saved.id">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <strong>Return {{ saved.id }}</strong>
+            <span class="badge text-bg-secondary ms-1">{{ saved.status }}</span>
+            <div class="text-muted small">{{ saved.items.length }} item(s), refund {{ saved.refundTotal | currency }}</div>
+            <ul class="small mb-2">
+              <li ng-repeat="line in saved.items">{{ line.quantity }} x {{ line.description }} ({{ line.reason }}, {{ line.condition }})</li>
+            </ul>
+          </div>
+          <div class="d-flex gap-2 align-items-start">
+            <select class="form-select form-select-sm" ng-model="saved.resolution" ng-options="option for option in resolutions"
+                aria-label="What we should do with return {{ saved.id }}"></select>
+            <button type="button" class="btn btn-sm btn-primary" ng-click="updateReturn(saved)">Update</button>
+            <button type="button" class="btn btn-sm btn-danger" ng-click="deleteReturn(saved)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- the json document that is sent to the api, updated as the form is filled in -->
     <div data-debug>
       <h2 class="mt-5">Return JSON</h2>

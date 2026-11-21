@@ -271,6 +271,60 @@
                 };
             }
 
+            // ---- read, update and delete the returns saved in the database ----
+            $scope.lookup = { email: "", returns: [], notice: null, loading: false };
+
+            // GET /api/returns?email=... lists the returns saved under that email
+            $scope.lookupReturns = function () {
+                const email = ($scope.lookup.email || "").trim();
+                $scope.lookup.notice = null;
+                if (!EMAIL_PATTERN.test(email)) {
+                    $scope.lookup.returns = [];
+                    $scope.lookup.notice = { type: "danger", text: "Enter the email address used on the return." };
+                    return;
+                }
+
+                $scope.lookup.loading = true;
+                $http.get("/api/returns", { params: { email: email } }).then(function (response) {
+                    $scope.lookup.returns = response.data;
+                    if (!response.data.length) $scope.lookup.notice = { type: "warning", text: "No returns found for " + email + "." };
+                }, function () {
+                    $scope.lookup.notice = { type: "danger", text: "Could not reach the server. Is it running (npm run dev)?" };
+                }).finally(function () {
+                    $scope.lookup.loading = false;
+                });
+            };
+
+            // PUT /api/returns/:id sends the whole return again with the new resolution, the server checks it like a new one
+            $scope.updateReturn = function (saved) {
+                const document = {
+                    name: saved.name,
+                    email: saved.email,
+                    orderNumber: saved.orderNumber,
+                    resolution: saved.resolution,
+                    comments: saved.comments,
+                    items: saved.items.map(line => ({ id: line.id, quantity: line.quantity, reason: line.reason, condition: line.condition }))
+                };
+                $http.put("/api/returns/" + saved.id, document).then(function (response) {
+                    angular.extend(saved, response.data);
+                    $scope.lookup.notice = { type: "success", text: "Return " + saved.id + " updated to " + saved.resolution + "." };
+                }, function (response) {
+                    const reason = (response.data && response.data.error) || "The server returned " + response.status;
+                    $scope.lookup.notice = { type: "danger", text: "Could not update return " + saved.id + ". " + reason + "." };
+                });
+            };
+
+            // DELETE /api/returns/:id removes the return from the database
+            $scope.deleteReturn = function (saved) {
+                if (!confirm("Delete return " + saved.id + "?")) return;
+                $http.delete("/api/returns/" + saved.id).then(function () {
+                    $scope.lookup.returns = $scope.lookup.returns.filter(r => r.id !== saved.id);
+                    $scope.lookup.notice = { type: "success", text: "Return " + saved.id + " deleted." };
+                }, function (response) {
+                    $scope.lookup.notice = { type: "danger", text: "Could not delete return " + saved.id + " (" + response.status + ")." };
+                });
+            };
+
             $scope.submitReturn = function () {
                 $scope.submitted = true;
                 $scope.notice = null;
@@ -297,6 +351,10 @@
                         text: "Return request " + saved.id + " received (" + saved.status + "). Estimated refund: " +
                             $filter("currency")(saved.refundTotal) + ". Thank you!"
                     };
+
+                    // show the new return in the lookup list below the form
+                    $scope.lookup.email = saved.email;
+                    $scope.lookupReturns();
 
                     // start over, including the search box
                     $scope.items = [];
