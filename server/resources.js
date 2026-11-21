@@ -14,6 +14,7 @@ const PARTICIPATION_TYPES = ["In-Person", "Virtual", "VIP"];
 const registrations = {
   label: "Registration",
   collection: "registrations",
+  filters: ["email"], // GET /api/registrations?email=...
   unique: "email",
   duplicateMessage: "This email is already registered for the event.",
   validate: function (data) {
@@ -202,6 +203,7 @@ const MAX_COMMENTS = 500;
 const returns = {
   label: "Return",
   collection: "returns",
+  filters: ["email"], // GET /api/returns?email=... so a customer can look up their own returns
   validate: function (data) {
     const errors = {};
 
@@ -272,6 +274,89 @@ const returns = {
   }
 };
 
+// ---- members: members.html / signup.html (the shoppers) ----
+const members = {
+  label: "Member",
+  collection: "members",
+  numericId: true, // new members get the Date.now() number ids the pages already use
+  unique: "email",
+  duplicateMessage: "That email is already registered.",
+  validate: function (data) {
+    const errors = {};
+    if (text(data.name) === "") errors.name = "Full name is required";
+    if (!EMAIL_PATTERN.test(text(data.email))) errors.email = "A valid email is required";
+    if (text(data.phone) !== "" && !PHONE_PATTERN.test(text(data.phone))) errors.phone = "Phone must be 10 digits, like 814-555-0123";
+    const age = Number(data.age);
+    if (data.age === "" || data.age === null || !Number.isInteger(age) || age < 13 || age > 120) errors.age = "Age must be a whole number from 13 to 120";
+    if (text(data.address) === "") errors.address = "Address is required";
+    return errors;
+  },
+  clean: function (data) {
+    return {
+      name: text(data.name),
+      email: text(data.email).toLowerCase(),
+      phone: text(data.phone),
+      age: Number(data.age),
+      address: text(data.address)
+    };
+  }
+};
+
+// ---- products: products.html (the store items) ----
+const PRODUCT_CATEGORIES = ["Lawn & Garden", "Building Materials", "Tools", "Outdoor Living"];
+const PRODUCT_UNITS = ["Each", "Pack", "Bag", "Pallet"];
+const PRODUCT_ID_PATTERN = /^[A-Za-z0-9-]{2,10}$/;
+
+const products = {
+  label: "Product",
+  collection: "products",
+  clientId: true, // the shop owner picks the id, like PROD01
+  unique: "id",
+  duplicateMessage: "That product id is already in use.",
+  validate: function (data) {
+    const errors = {};
+    if (!PRODUCT_ID_PATTERN.test(text(data.id))) errors.id = "Product id must be 2 to 10 letters, numbers or dashes";
+    if (text(data.description) === "") errors.description = "Description is required";
+    if (!PRODUCT_CATEGORIES.includes(data.category)) errors.category = "Category must be one of: " + PRODUCT_CATEGORIES.join(", ");
+    if (!PRODUCT_UNITS.includes(data.unit)) errors.unit = "Unit must be one of: " + PRODUCT_UNITS.join(", ");
+    if (typeof data.price !== "number" || !(data.price > 0)) errors.price = "Price must be a number above 0";
+    if (data.weight !== "" && data.weight !== undefined && (typeof data.weight !== "number" || data.weight < 0)) errors.weight = "Weight must be empty or a number from 0 up";
+    return errors;
+  },
+  clean: function (data) {
+    return {
+      id: text(data.id).toUpperCase(),
+      description: text(data.description),
+      category: data.category,
+      unit: data.unit,
+      price: Math.round(data.price * 100) / 100,
+      weight: data.weight === undefined ? "" : data.weight,
+      color: text(data.color)
+    };
+  }
+};
+
+// ---- posts and events: posts.html and events.html keep free form documents, so only the shape is checked ----
+function looseResource(label, collection) {
+  return {
+    label: label,
+    collection: collection,
+    clientId: true, // the page may pick the id, the server only makes one when it is missing
+    unique: "id",
+    duplicateMessage: label + " id is already in use.",
+    validate: function () { return {}; },
+    clean: function (data) {
+      const copy = Object.assign({}, data);
+      ["createdAt", "updatedAt"].forEach(key => delete copy[key]); // these always come from the server
+      return copy;
+    }
+  };
+}
+
+// ---- billings and shippings: written when an order is placed, so the api only lets you read them ----
+const billings = { label: "Billing record", collection: "billings", readOnly: true };
+const shippings = { label: "Shipping record", collection: "shippings", readOnly: true };
+
 // ---- carts: the shopping cart from cart.html, one document per browser (upserted, see js/cart.js) ----
 const carts = {
   label: "Cart",
@@ -290,4 +375,10 @@ const carts = {
   }
 };
 
-module.exports = { registrations, orders, artworks, returns, carts, setProducts };
+module.exports = {
+  registrations, orders, artworks, returns, carts, members, products,
+  posts: looseResource("Post", "posts"),
+  events: looseResource("Event", "events"),
+  billings, shippings,
+  setProducts
+};

@@ -1,12 +1,13 @@
 // restful api the pages send their json documents to with ajax.
 // every resource in server/resources.js gets the same five routes, saved in its MongoDB collection (server/db.js):
 //
-//   GET    /api/<resource>       list every record
+//   GET    /api/<resource>       list every record (returns and registrations also take ?email=...)
 //   GET    /api/<resource>/:id   one record
 //   POST   /api/<resource>       create (server adds id + timestamps), returns 201
 //   PUT    /api/<resource>/:id   replace an existing record
 //   DELETE /api/<resource>/:id   remove a record, returns 204
 //
+// billings and shippings are filled in when an order is placed, so they only have the two GET routes.
 // plus GET /api/health to check the server and database are up, and for members, posts, products and events
 // (lists the pages edit as a whole) GET /api/<name> and PUT /api/<name> which replaces the whole collection
 const mongoose = require("mongoose");
@@ -18,21 +19,14 @@ const LISTS = ["members", "posts", "products", "events"];
 const MAX_BODY = 1024 * 1024; // 1 MB is plenty for a form submission
 
 const ROUTES = ["GET    /api/health"];
-LISTS.forEach(name => ROUTES.push(`GET    /api/${name}`, `PUT    /api/${name}`));
+LISTS.forEach(name => ROUTES.push(`GET    /api/${name}  (whole list)`, `PUT    /api/${name}  (replace whole list)`));
 Object.keys(resources).filter(name => typeof resources[name] === "object").forEach(function (name) {
-  ROUTES.push(
-    `GET    /api/${name}`,
-    `GET    /api/${name}/:id`,
-    `POST   /api/${name}`,
-    `PUT    /api/${name}/:id`,
-    `DELETE /api/${name}/:id`
-  );
+  const resource = resources[name];
+  if (!LISTS.includes(name)) ROUTES.push(`GET    /api/${name}`);
+  ROUTES.push(`GET    /api/${name}/:id`);
+  if (resource.readOnly) return;
+  ROUTES.push(`POST   /api/${name}`, `PUT    /api/${name}/:id`, `DELETE /api/${name}/:id`);
 });
-
-async function readAll(resource) {
-  const docs = await models[resource.collection].find({}).sort({ _id: 1 }).lean();
-  return docs.map(strip);
-}
 
 // make sure the order / return checks use the prices currently saved in the products collection
 async function refreshProducts() {
@@ -90,14 +84,14 @@ function handle(req, res) {
   const match = url.match(/^\/api\/([a-z-]+)(?:\/([^/]+))?\/?$/);
   if (!match) return false;
 
-  if (LISTS.includes(match[1]) && !match[2]) {
+  // the pages read and save these as one whole list (GET / PUT), anything else on the collection is a normal route
+  if (LISTS.includes(match[1]) && !match[2] && req.method !== "POST") {
     run(req, res, () => list(req, res, match[1]));
     return true;
   }
 
   if (!Object.prototype.hasOwnProperty.call(resources, match[1]) || typeof resources[match[1]] !== "object") return false;
   const resource = resources[match[1]];
-  resource.collection = resource.collection || match[1];
   const id = match[2];
 
   run(req, res, () => (!id ? collection(req, res, resource) : item(req, res, resource, decodeURIComponent(id))));
@@ -133,10 +127,29 @@ async function list(req, res, name) {
   });
 }
 
-// /api/<resource>
+// find a record by its id. ids that are all digits are also tried as numbers because members and events use Date.now()
+function byId(id) {
+  return /^\d+$/.test(id) ? { $or: [{ id: id }, { id: Number(id) }] } : { id: id };
+}
+
+// the id a new record gets: the one the page sent when the resource allows it, otherwise one made here
+function newId(resource, record) {
+  if (resource.clientId && record.id !== undefined && record.id !== "") return record.id;
+  return resource.numericId ? Date.now() : Date.now().toString(36);
+}
+
+// /api/<resource>, with ?field=value filters for the fields a resource lists in "filters"
 async function collection(req, res, resource) {
-  if (req.method === "GET") return send(req, res, 200, await readAll(resource));
-  if (req.method !== "POST") return methodNotAllowed(req, res, "GET, POST");
+  if (req.method === "GET") {
+    const query = new URL(req.url, "http://localhost").searchParams;
+    const filter = {};
+    (resource.filters || []).forEach(function (field) {
+      if (query.has(field)) filter[field] = field === "email" ? query.get(field).trim().toLowerCase() : query.get(field);
+    });
+    const docs = await models[resource.collection].find(filter).sort({ _id: 1 }).lean();
+    return send(req, res, 200, docs.map(strip));
+  }
+  if (resource.readOnly || req.method !== "POST") return methodNotAllowed(req, res, resource.readOnly ? "GET" : "GET, POST");
 
   readJson(req, function (err, data) {
     if (err) return send(req, res, err.code, { error: err.message });
@@ -150,7 +163,7 @@ async function collection(req, res, resource) {
         return send(req, res, 409, { error: resource.duplicateMessage, details: { [resource.unique]: resource.duplicateMessage } });
       }
       const now = new Date().toISOString();
-      Object.assign(record, { id: Date.now().toString(36), createdAt: now, updatedAt: now });
+      Object.assign(record, { id: newId(resource, record), createdAt: now, updatedAt: now });
       await models[resource.collection].create(record);
       if (resource.related) {
         const extra = resource.related(record);
@@ -165,14 +178,17 @@ async function collection(req, res, resource) {
 // /api/<resource>/:id
 async function item(req, res, resource, id) {
   const model = models[resource.collection];
-  if (!["GET", "PUT", "DELETE"].includes(req.method)) return methodNotAllowed(req, res, "GET, PUT, DELETE");
-  const existing = await model.findOne({ id: id }).lean();
+  if (!["GET", "PUT", "DELETE"].includes(req.method)) return methodNotAllowed(req, res, resource.readOnly ? "GET" : "GET, PUT, DELETE");
+  if (resource.readOnly && req.method !== "GET") return methodNotAllowed(req, res, "GET");
+  const existing = await model.findOne(byId(id)).lean();
 
   if (!existing && !(req.method === "PUT" && resource.upsert)) return send(req, res, 404, { error: resource.label + " " + id + " not found" });
   if (req.method === "GET") return send(req, res, 200, strip(existing));
 
   if (req.method === "DELETE") {
-    await model.deleteOne({ id: id });
+    await model.deleteOne({ _id: existing._id });
+    // an order's billing and shipping records go with it
+    if (resource.related) for (const name of Object.keys(resource.related(existing))) await models[name].deleteMany({ id: existing.id });
     return send(req, res, 204);
   }
 
@@ -180,17 +196,24 @@ async function item(req, res, resource, id) {
     if (err) return send(req, res, err.code, { error: err.message });
     run(req, res, async function () {
       await refreshProducts();
+      // the id in the address wins over any id in the body
+      if (data && typeof data === "object" && !Array.isArray(data) && resource.clientId) data = Object.assign({}, data, { id: id });
       const result = prepare(resource, data);
       if (result.errors) return send(req, res, 422, { error: "Validation failed", details: result.errors });
 
       const record = result.record;
-      if (resource.unique && await model.exists({ [resource.unique]: record[resource.unique], id: { $ne: id } })) {
+      // the id is the one field that cannot clash with itself, everything else must stay unique
+      if (resource.unique && resource.unique !== "id" && await model.exists({ [resource.unique]: record[resource.unique], _id: { $ne: existing && existing._id } })) {
         return send(req, res, 409, { error: resource.duplicateMessage, details: { [resource.unique]: resource.duplicateMessage } });
       }
       // id and createdAt always come from the server, never the client
       const now = new Date().toISOString();
-      Object.assign(record, { id: id, createdAt: existing ? existing.createdAt : now, updatedAt: now });
-      await model.replaceOne({ id: id }, record, { upsert: !!resource.upsert });
+      Object.assign(record, { id: existing ? existing.id : (resource.numericId ? Number(id) : id), createdAt: existing ? existing.createdAt : now, updatedAt: now });
+      await model.replaceOne(existing ? { _id: existing._id } : { id: id }, record, { upsert: !!resource.upsert });
+      if (resource.related) {
+        const extra = resource.related(record);
+        for (const name of Object.keys(extra)) await models[name].replaceOne({ id: record.id }, Object.assign({ id: record.id, createdAt: record.createdAt }, extra[name]), { upsert: true });
+      }
       send(req, res, 200, record);
     });
   });
