@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "node dev.js",
-    "start": "node dev.js"
+    "start": "node dev.js",
+    "test": "node tests/run-tests.js"
   },
   "dependencies": {
     "mongodb-memory-server": "^10.1.4",
